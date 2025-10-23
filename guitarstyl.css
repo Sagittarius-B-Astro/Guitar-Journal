@@ -1,0 +1,106 @@
+html, body {
+    width: 100% !important;
+    height: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow-x: hidden;
+    box-sizing: border-box;
+}
+
+h1, h2, h3 {
+  margin: 0;
+  padding: 0;
+}
+
+.guitar-main {
+    padding: 0px;
+    text-align: center;
+    font-family: 'Fredericka the Great';
+    width: 24%;
+    min-height: 30px;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.top-container {
+    display: flex;
+    margin: 0 auto;
+    padding: 10px;
+    background-color: #89a9aac9;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.top-links {
+    padding: 0px;
+    text-align: center;
+    width: 24%;
+    min-height: 30px;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.top-links a {
+    color: #fce7c8;
+    font-family: 'Fredericka the Great';
+    font-size: 30px;
+    text-decoration: none;
+    transition: color 0.3s ease, transform 0.2s ease;
+}
+
+.top-links a:hover {
+    color: #fce7c8;
+    transform: scale(1.1);
+}
+
+.title, .Goals, .Weekly, .Videos {
+    opacity: 0.5;
+    font-family: 'Fredericka the Great';
+    width: 100%;
+    background-color: #64a3a5c9;
+    display: flex;
+    padding: 60px;
+    border-bottom: 2px solid white;
+    border-top: 2px solid white;
+    justify-content: center;
+    flex-direction: column;
+    align-items: center;
+}
+
+.enter-task {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin: 20px 0;
+}
+
+#task-text {
+    flex-grow: 1;
+    padding: 10px;
+    font-size: 1em;
+    min-width: 150px;
+    border-radius: 5px;
+    border: none;
+    background: white;
+    color: black;
+}
+
+button {
+    color: white;
+    background: transparent;
+    border: 2px solid white;
+    border-radius: 8px;
+    padding: 10px 15px;
+    font-size: 1em;
+    cursor: pointer;
+    transition: 0.3s ease-in-out;
+}
+
+button:hover {
+    background: white;
+    color: black;
+}
