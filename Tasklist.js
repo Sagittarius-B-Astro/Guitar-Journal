@@ -1,7 +1,5 @@
-// Task colors in order: All, Composition / Cover, Ear Training / Theory / Tab, Website Dev
 const colors = ['#016B61', '#70B2B2', '#9ECFD4', '#E5E9C5'];
 
-// Task functions
 async function loadTasks() {
     try {
         const { data: tasks, error } = await supabase
@@ -472,4 +470,3 @@ async function removeTask(taskElement) {
         console.error('Error removing task:', error);
     }
 }
-
