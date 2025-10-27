@@ -12,7 +12,7 @@
     <header class="top-container">
       <div class="guitar-main">
         <a href="">
-          <img src="GuitarLogo.png" alt="Guitar Journal" style="width:150px;height:80px;"> <!-- Change dimensions -->
+          <img src="GuitarLogo.png" alt="Guitar Journal" style="width:150px;height:80px;">
         </a>
       </div>
       <div class="top-links">
@@ -33,6 +33,10 @@
         <button onclick="addTask()">Add Task</button>
       </div>
       <div class="filter-buttons">
+        <button class="filter active" data-filter="all">All</button>
+        <button class="filter" data-filter="play">Playing</button>
+        <button class="filter" data-filter="theory">Theory</button>
+        <button class="filter" data-filter="dev">Development</button>
       </div>
       <div class="tasks">
       </div>
