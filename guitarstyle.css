@@ -59,7 +59,7 @@ h1, h2, h3 {
     opacity: 0.5;
     font-family: 'Fredericka the Great';
     width: 100%;
-    background-color: #64a3a5c9;
+    background: rgba(76, 164, 167, 0.4);
     display: flex;
     padding: 60px;
     border-bottom: 2px solid white;
@@ -82,7 +82,7 @@ h1, h2, h3 {
     flex-grow: 1;
     padding: 10px;
     font-size: 1em;
-    min-width: 150px;
+    min-width: 300px;
     border-radius: 5px;
     border: none;
     background: white;
@@ -103,4 +103,26 @@ button {
 button:hover {
     background: white;
     color: black;
+}
+
+.filter {
+    padding: 8px 16px;
+    font-size: 14px;
+    border: 2px solid rgba(255, 255, 255, 0.5);
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.filter.active {
+    background: white;
+    color: black;
+    border-color: white;
+}
+
+.filter-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: white;
 }
