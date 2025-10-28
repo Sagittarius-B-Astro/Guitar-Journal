@@ -1,4 +1,4 @@
-// Configruation
+// Configuration
 const SUPABASE_URL = "https://my_supabase";
 const SUPABASE_ANON_KEY = "my_supabase_anon_key";
 const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
