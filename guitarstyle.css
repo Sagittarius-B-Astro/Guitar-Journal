@@ -5,6 +5,7 @@ html, body {
     padding: 0 !important;
     overflow-x: hidden;
     box-sizing: border-box;
+    background: #0D1117
 }
 
 h1, h2, h3 {
@@ -27,7 +28,7 @@ h1, h2, h3 {
     display: flex;
     margin: 0 auto;
     padding: 10px;
-    background-color: #89a9aac9;
+    background: linear-gradient(180deg, #1B2A41 0%, #0D1117 100%);
     justify-content: space-between;
     align-items: center;
 }
@@ -59,11 +60,12 @@ h1, h2, h3 {
     opacity: 0.5;
     font-family: 'Fredericka the Great';
     width: 100%;
-    background: rgba(76, 164, 167, 0.4);
+    color: #fce7c8;
+    background: linear-gradient(180deg, #1B2A41 0%, #0D1117 100%);
+    border-top: 2px solid #31363F;
+    border-bottom: 2px solid #31363F;
     display: flex;
     padding: 60px;
-    border-bottom: 2px solid white;
-    border-top: 2px solid white;
     justify-content: center;
     flex-direction: column;
     align-items: center;
@@ -82,7 +84,7 @@ h1, h2, h3 {
     flex-grow: 1;
     padding: 10px;
     font-size: 1em;
-    min-width: 300px;
+    min-width: 800px;
     border-radius: 5px;
     border: none;
     background: white;
@@ -91,18 +93,18 @@ h1, h2, h3 {
 
 button {
     color: white;
-    background: transparent;
-    border: 2px solid white;
+    background: linear-gradient(90deg, #64FFDA, #C778DD);
+    border: none;
     border-radius: 8px;
     padding: 10px 15px;
     font-size: 1em;
     cursor: pointer;
-    transition: 0.3s ease-in-out;
+    transition: all 0.3s ease;
 }
 
 button:hover {
-    background: white;
-    color: black;
+    filter: brightness(1.2);
+    transform: scale(1.05);
 }
 
 .filter {
@@ -125,4 +127,25 @@ button:hover {
 .filter-btn:hover {
     background: rgba(255, 255, 255, 0.2);
     border-color: white;
+}
+
+.enter-video {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin: 20px 0;
+}
+
+.video-catalogue {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 40px
+}
+
+.video {
+    display: flex;
+
 }
