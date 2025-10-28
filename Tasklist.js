@@ -3,11 +3,11 @@ const colors = ['#016B61', '#70B2B2', '#9ECFD4', '#E5E9C5'];
 async function loadTasks() {
     try {
         const { data: tasks, error } = await supabase
-            .from('tasks_v3')
+            .from('tasks')
             .select(`
                 *, 
-                users_v3(username),
-                tags_v3(color, tag_name)
+                users(username),
+                tags(color, tag_name)
             `)
             .order('created_at', { ascending: true });
 
@@ -22,11 +22,10 @@ async function loadTasks() {
 
 function getDefaultTagName(color) {
     const defaultNames = {
-        '#FF6B6B': 'Priority',
-        '#77DD77': 'Work',
-        '#45B7D1': 'Personal',
-        '#f7ac3b': 'Learning',
-        '#DDA0DD': 'Fun'
+        '#016B61': 'All',
+        '#70B2B2': 'Play',
+        '#9ECFD4': 'Theory',
+        '#E5E9C5': 'Dev',
     };
     return defaultNames[color] || 'Unnamed';
 }
@@ -47,8 +46,8 @@ function filterTasks() {
             
             // Sort by priority: red tags first, then by creation date
             filteredTasks.sort((a, b) => {
-                const aIsRed = a.tags_v3?.color === '#FF6B6B';
-                const bIsRed = b.tags_v3?.color === '#FF6B6B';
+                const aIsRed = a.tags?.color === '#FF6B6B';
+                const bIsRed = b.tags?.color === '#FF6B6B';
                 
                 if (aIsRed && !bIsRed) return -1;
                 if (!aIsRed && bIsRed) return 1;
@@ -67,7 +66,7 @@ function filterTasks() {
             break;
         case 'user':
             if (currentUserFilter) {
-                filteredTasks = window.allTasks.filter(task => task.users_v3.username === currentUserFilter);
+                filteredTasks = window.allTasks.filter(task => task.users.username === currentUserFilter);
             }
             // Hide tag filter bar
             const existingBar2 = document.querySelector('.tag-filter-bar');
@@ -96,15 +95,15 @@ function displayTasks(tasks) {
         const canModify = currentUser && task.user_id === currentUser.id;
         
         // Create tag element
-        const tagColor = task.tags_v3?.color || '#CCCCCC';
-        const tagName = task.tags_v3?.tag_name || 'No Tag';
+        const tagColor = task.tags?.color || '#CCCCCC';
+        const tagName = task.tags?.tag_name || 'No Tag';
         
         li.innerHTML = `
             ${canModify ? `<button class="done" onclick="markDone(this.parentNode)">✓</button>` : ''}
             ${canModify ? `<button class="remove" onclick="removeTask(this.parentNode)">✕</button>` : ''}
             ${canModify ? createTagSelector(task.tag_id, tagColor, tagName) : `<div class="tag-display" style="background-color: ${tagColor}">${tagName}</div>`}
             <span class="task-content">${task.task_text}</span>
-            <span class="task-owner">by ${task.users_v3.username}</span>
+            <span class="task-owner">by ${task.users.username}</span>
         `;
 
         if (task.is_done) {
@@ -258,7 +257,7 @@ async function updateTaskTag(taskId, color) {
         console.log('Found tag:', userTag);
         
         const { data, error } = await supabase
-            .from('tasks_v3')
+            .from('tasks')
             .update({ tag_id: userTag.id })
             .eq('id', taskId)
             .eq('user_id', currentUser.id)
@@ -279,7 +278,7 @@ async function updateTaskTag(taskId, color) {
         const localTask = window.allTasks?.find(t => t.id.toString() === taskId.toString());
         if (localTask) {
             localTask.tag_id = userTag.id;
-            localTask.tags_v3 = userTag;
+            localTask.tags = userTag;
         }
         
         // Reload tasks
@@ -343,7 +342,7 @@ async function editTask(taskElement, taskId, currentText) {
         
         try {
             const { error } = await supabase
-                .from('tasks_v3')
+                .from('tasks')
                 .update({ task_text: newText })
                 .eq('id', taskId);
 
@@ -399,7 +398,7 @@ async function addTask() {
 
     try {
         const { data, error } = await supabase
-            .from('tasks_v3')
+            .from('tasks')
             .insert([{
                 user_id: currentUser.id,
                 task_text: taskText,
@@ -424,7 +423,7 @@ async function markDone(taskElement) {
 
     try {
         const { error } = await supabase
-            .from('tasks_v3')
+            .from('tasks')
             .update({ is_done: isDone })
             .eq('id', taskId);
 
@@ -433,7 +432,7 @@ async function markDone(taskElement) {
         if (isDone) {
             // Increment task completion count
             await supabase
-                .from('users_v3')
+                .from('users')
                 .update({ 
                     tasks_completed: currentUser.tasks_completed + 1,
                     week_count_task: currentUser.week_count_task + 1,
@@ -459,7 +458,7 @@ async function removeTask(taskElement) {
 
     try {
         const { error } = await supabase
-            .from('tasks_v3')
+            .from('tasks')
             .delete()
             .eq('id', taskId);
 
@@ -470,3 +469,4 @@ async function removeTask(taskElement) {
         console.error('Error removing task:', error);
     }
 }
+
