@@ -38,15 +38,20 @@
         <button class="filter" data-filter="theory">Theory</button>
         <button class="filter" data-filter="dev">Development</button>
       </div>
-      <div class="tasks">
-      </div>
+      <ul id="tasks">
+
+      </ul>
     </section>
     <section class="Weekly">
+      <h2>Weekly</h2>
       <div class="weekly-posts">
       </div>
     </section>
     <section class="Videos">
-      <div class="enter-videos">
+      <h2>Videos</h2>
+      <div class="enter-video">
+        <input type="text" id="task-text" placeholder="Enter video title:"> 
+        <button onclick="addVideo()">Add Video</button>
       </div>
       <div class="video-catalogue">
       </div>
