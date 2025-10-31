@@ -36,48 +36,17 @@ function filterTasks() {
     let filteredTasks = window.allTasks;
     
     switch (currentTaskFilter) {
-        case 'my':
-            filteredTasks = window.allTasks.filter(task => task.user_id === currentUser.id);
-            
-            // Apply tag filter if active
-            if (currentTagFilter !== null) {
-                filteredTasks = filteredTasks.filter(task => task.tag_id === currentTagFilter);
-            }
-            
-            // Sort by priority: red tags first, then by creation date
-            filteredTasks.sort((a, b) => {
-                const aIsRed = a.tags?.color === '#FF6B6B';
-                const bIsRed = b.tags?.color === '#FF6B6B';
-                
-                if (aIsRed && !bIsRed) return -1;
-                if (!aIsRed && bIsRed) return 1;
-                
-                return new Date(a.created_at) - new Date(b.created_at);
-            });
-            
-            // Show tag filter bar
-            displayTagFilterBar();
+        case 'play':
+            filteredTasks = window.allTasks.filter(task => task.tag_id === 'play');
             break;
-        case 'others':
-            filteredTasks = window.allTasks.filter(task => task.user_id !== currentUser.id);
-            // Hide tag filter bar
-            const existingBar = document.querySelector('.tag-filter-bar');
-            if (existingBar) existingBar.remove();
+        case 'theory':
+            filteredTasks = window.allTasks.filter(task => task.tag_id === 'theory');
             break;
-        case 'user':
-            if (currentUserFilter) {
-                filteredTasks = window.allTasks.filter(task => task.users.username === currentUserFilter);
-            }
-            // Hide tag filter bar
-            const existingBar2 = document.querySelector('.tag-filter-bar');
-            if (existingBar2) existingBar2.remove();
-            break;
-        case 'all':
+        case 'dev':
+            filteredTasks = window.allTasks.filter(task => task.tag_id === 'user');
+            break
         default:
             filteredTasks = window.allTasks;
-            // Hide tag filter bar
-            const existingBar3 = document.querySelector('.tag-filter-bar');
-            if (existingBar3) existingBar3.remove();
             break;
     }
     
