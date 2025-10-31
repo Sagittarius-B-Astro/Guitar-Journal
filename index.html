@@ -9,6 +9,26 @@
     <title>Guitar Journal</title>
   </head>
   <body>
+
+    <!-- Authentication Modal -->
+    <div id="authModal" class="auth-modal">
+        <div class="auth-container">
+            <h2>Guitar Journal Login</h2>
+            <div id="authError" class="error-message"></div>
+            
+            <input type="text" id="authName" placeholder="Enter your name" />
+            <div id="authPasswordSection" style="display: none;">
+                <input type="password" id="authPassword" placeholder="Enter password" />
+                <div id="confirmPasswordSection" style="display: none;">
+                    <input type="password" id="authConfirmPassword" placeholder="Confirm password" />
+                </div>
+            </div>
+            
+            <button id="authSubmit" onclick="handleAuth()">Lock in!</button>
+        </div>
+    </div>
+
+    <!-- Top Link Bar -->
     <header class="top-container">
       <div class="guitar-main">
         <a href="">
@@ -25,7 +45,9 @@
           <a href="index.html#Cont">Tabber</a> <!-- Add proper Tabber Tree Link -->
       </div>
     </header>
+
     <h1 class="title">Guitar Journal Tasklist</h1>
+
     <section class="Goals">
       <h2>Goals</h2>
       <div class="enter-task">
@@ -42,11 +64,17 @@
 
       </ul>
     </section>
+
+    <hr>
+
     <section class="Weekly">
       <h2>Weekly</h2>
       <div class="weekly-posts">
       </div>
     </section>
+
+    <hr>
+
     <section class="Videos">
       <h2>Videos</h2>
       <div class="enter-video">
@@ -56,7 +84,7 @@
       <div class="video-catalogue">
       </div>
     </section>
-    <script src="AddTask.js"></script>
+    <script src="Tasklist.js"></script>
     <script src="UpdateWeekly.js"></script>
     <script src="AddVideos.js"></script>
   </body>
