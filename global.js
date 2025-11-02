@@ -1,6 +1,6 @@
 // Configuration
-const SUPABASE_URL = "https://my_supabase";
-const SUPABASE_ANON_KEY = "my_supabase_anon_key";
+const SUPABASE_URL = "https://myywayfyfvdqnukaiecd.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im15eXdheWZ5ZnZkcW51a2FpZWNkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE2OTg1NzYsImV4cCI6MjA3NzI3NDU3Nn0.R12_dB-qYcLED7jdU49FT8KjV3a6S3FyfYR8Yds9_4U";
 const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 const ADMIN_EMAIL = "my email";
@@ -48,91 +48,92 @@ function updateUIForUser() {
 }
 
 async function handleAuth() {
-    const name = document.getElementById('authName').value.trim();
-    const password = document.getElementById('authPassword').value;
-    const confirmPassword = document.getElementById('authConfirmPassword').value;
-    const errorElement = document.getElementById('authError');
-    
-    if (!name) {
-        errorElement.textContent = 'Please enter your name';
-        return;
-    }
-    
-    try {
-        // Check if user exists
-        const { data: existingUser, error } = await supabase
-            .from('users')
-            .select('*')
-            .eq('username', name)
-            .single();
-            
-        if (existingUser) {
-            // User exists, verify password
-            if (!password) {
-                showPasswordInput();
-                return;
-            }
-            
-            if (existingUser.password === password) {
-                // Update last login time
-                await supabase
-                    .from('users')
-                    .update({ last_login: new Date().toISOString() })
-                    .eq('id', existingUser.id);
-                
-                // Login successful - set current user with updated last_login
-                currentUser = { ...existingUser, last_login: new Date().toISOString() };
-                
-                // Check for calendar-based resets (affects all users)
-                // await checkCalendarResets(); //supabase does not have this function, need to fix
-                
-                showMainApp();
-            } else {
-                errorElement.textContent = 'Incorrect password';
-            }
-        } else {
-            // New user, create account
-            if (!password) {
-                showPasswordCreation();
-                return;
-            }
-            
-            if (password !== confirmPassword) {
-                errorElement.textContent = 'Passwords do not match';
-                return;
-            }
-            
-            if (password.length < 4) {
-                errorElement.textContent = 'Password must be at least 4 characters';
-                return;
-            }
-            
-            // Create new user
-            const { data: newUser, error: createError } = await supabase
-                .from('users')
-                .insert([{
-                    username: name,
-                    password: password,
-                    tasks_completed: 0,
-                    week_count_task: 0,
-                    last_login: new Date().toISOString()
-                }])
-                .select()
-                .single();
-                
-            if (createError) throw createError;
-            
-            currentUser = newUser;
-            
-            // Check for calendar-based resets (affects all users)
-            await checkCalendarResets();
-            
-            showMainApp();
-        }
-    } catch (error) {
-        console.error('Auth error:', error);
-        errorElement.textContent = 'Authentication failed. Please try again.';
-    }
+  const name = document.getElementById('authName').value.trim();
+  const password = document.getElementById('authPassword').value;
+  const confirmPassword = document.getElementById('authConfirmPassword').value;
+  const errorElement = document.getElementById('authError');
+  
+  if (!name) {
+      errorElement.textContent = 'Please enter your name';
+      return;
+  }
+  
+  try {
+      // Check if user exists
+      const { data: existingUser, error } = await supabase
+          .from('users')
+          .select('*')
+          .eq('username', name)
+          .single();
+          
+      if (existingUser) {
+          // User exists, verify password
+          if (!password) {
+              showPasswordInput();
+              return;
+          }
+          
+          if (existingUser.password === password) {
+              // Update last login time
+              await supabase
+                  .from('users')
+                  .update({ last_login: new Date().toISOString() })
+                  .eq('id', existingUser.id);
+              
+              // Login successful - set current user with updated last_login
+              currentUser = { ...existingUser, last_login: new Date().toISOString() };
+              
+              // Check for calendar-based resets (affects all users)
+              // await checkCalendarResets(); //supabase does not have this function, need to fix
+              
+              showMainApp();
+          } else {
+              errorElement.textContent = 'Incorrect password';
+          }
+      } else {
+          // New user, create account
+          if (!password) {
+              showPasswordCreation();
+              return;
+          }
+          
+          if (password !== confirmPassword) {
+              errorElement.textContent = 'Passwords do not match';
+              return;
+          }
+          
+          if (password.length < 4) {
+              errorElement.textContent = 'Password must be at least 4 characters';
+              return;
+          }
+          
+          // Create new user
+          const { data: newUser, error: createError } = await supabase
+              .from('users')
+              .insert([{
+                  username: name,
+                  password: password,
+                  tasks_completed: 0,
+                  week_count_task: 0,
+                  QA: 0,
+                  last_login: new Date().toISOString()
+              }])
+              .select()
+              .single();
+              
+          if (createError) throw createError;
+          
+          currentUser = newUser;
+          
+          // Check for calendar-based resets (affects all users)
+          await checkCalendarResets();
+          
+          showMainApp();
+      }
+  } catch (error) {
+      console.error('Auth error:', error);
+      errorElement.textContent = 'Authentication failed. Please try again.';
+  }
 }
 
 // General Event Listeners
