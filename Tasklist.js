@@ -357,7 +357,7 @@ async function editTask(taskElement, taskId, currentText) {
 }
 
 async function addTask() {
-    const taskInput = document.getElementById('taskInput');
+    const taskInput = document.getElementById('task-text');
     const taskText = taskInput.value.trim();
 
     if (!taskText) {
