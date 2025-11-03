@@ -53,6 +53,7 @@
 
     <hr>
 
+    <!-- Tasklist -->
     <section class="Goals">
       <h2>Goals</h2>
       <div class="enter-task">
@@ -71,7 +72,8 @@
     </section>
 
     <hr>
-
+    
+    <!-- Weekly -->
     <section class="Weekly">
       <h2>Weekly</h2>
       <div class="weekly-posts">
@@ -79,16 +81,21 @@
     </section>
 
     <hr>
-
+    
+    <!-- Videos -->
     <section class="Videos">
       <h2>Videos</h2>
       <div class="enter-video">
-        <input type="text" id="task-text" placeholder="Enter video link:"> 
+        <input type="text" id="video-link" placeholder="Enter video link:"> 
         <button onclick="addVideo()">Add Video</button>
       </div>
       <div class="video-catalogue">
       </div>
     </section>
+
+    <!-- Scripts-->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="global.js"></script>
     <script src="Tasklist.js"></script>
     <script src="UpdateWeekly.js"></script>
     <script src="AddVideos.js"></script>
