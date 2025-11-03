@@ -1,11 +1,7 @@
 // Configuration
 const SUPABASE_URL = "https://myywayfyfvdqnukaiecd.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im15eXdheWZ5ZnZkcW51a2FpZWNkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE2OTg1NzYsImV4cCI6MjA3NzI3NDU3Nn0.R12_dB-qYcLED7jdU49FT8KjV3a6S3FyfYR8Yds9_4U";
-const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-const ADMIN_EMAIL = "my email";
-
-let currentUser = null;
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // Load DOM
 
@@ -15,38 +11,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Authentication
 
-async function checkUserSession() {
-  const { data: { user } } = await supabase.auth.getUser();
-  currentUser = user;
-  updateUIForUser();
-}
-
-async function signIn(email, password) {
-  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-  if (error) {
-    alert("Login failed: " + error.message);
-  } else {
-    currentUser = data.user;
-    updateUIForUser();
-  }
-}
-
-async function signOut() {
-  await supabase.auth.signOut();
-  currentUser = null;
-  updateUIForUser();
-}
-
-function updateUIForUser() {
-  const adminElements = document.querySelectorAll(".admin-only");
-  if (currentUser && currentUser.email === ADMIN_EMAIL) {
-    adminElements.forEach(el => el.style.display = "inline-block");
-  } else {
-    adminElements.forEach(el => el.style.display = "none");
-  }
-  loadTasks(activeCategory);
-}
-
 async function handleAuth() {
   const name = document.getElementById('authName').value.trim();
   const password = document.getElementById('authPassword').value;
@@ -54,186 +18,222 @@ async function handleAuth() {
   const errorElement = document.getElementById('authError');
   
   if (!name) {
-      errorElement.textContent = 'Please enter your name';
-      return;
+    errorElement.textContent = 'Please enter your name';
+    return;
   }
   
+  const emailForAuth = `${encodeURIComponent(name)}@guitarjournal.example.com`;
+
   try {
-      // Check if user exists
-      const { data: existingUser, error } = await supabase
-          .from('users')
-          .select('*')
-          .eq('username', name)
-          .single();
+    // Check if user exists
+    const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+      email: emailForAuth,
+      password
+    });
+    
+    if (signInData?.user) {
+      // User exists, verify password
+      await ensureProfileExists(signInData.user.id, name);
+      await showPasswordInput();
+      await loadAppAfterAuth();
+      return;
+    }
+    
+    if (signInError) {
+      if (signInError.message.includes("Invalid login credentials")) {
+
+        if (!password) {
+          showPasswordCreation();
+          return;
+        }
+
+        if (password !== confirmPassword) {
+          errorElement.textContent = 'Passwords do not match';
+          return;
+        }
           
-      if (existingUser) {
-          // User exists, verify password
-          if (!password) {
-              showPasswordInput();
-              return;
-          }
-          
-          if (existingUser.password === password) {
-              // Update last login time
-              await supabase
-                  .from('users')
-                  .update({ last_login: new Date().toISOString() })
-                  .eq('id', existingUser.id);
-              
-              // Login successful - set current user with updated last_login
-              currentUser = { ...existingUser, last_login: new Date().toISOString() };
-              
-              // Check for calendar-based resets (affects all users)
-              // await checkCalendarResets(); //supabase does not have this function, need to fix
-              
-              showMainApp();
-          } else {
-              errorElement.textContent = 'Incorrect password';
-          }
-      } else {
-          // New user, create account
-          if (!password) {
-              showPasswordCreation();
-              return;
-          }
-          
-          if (password !== confirmPassword) {
-              errorElement.textContent = 'Passwords do not match';
-              return;
-          }
-          
-          if (password.length < 4) {
-              errorElement.textContent = 'Password must be at least 4 characters';
-              return;
-          }
+        if (password.length < 6) {
+          errorElement.textContent = 'Password must be at least 6 characters';
+          return;
+        }
           
           // Create new user
-          const { data: newUser, error: createError } = await supabase
-              .from('users')
-              .insert([{
-                  username: name,
-                  password: password,
-                  tasks_completed: 0,
-                  week_count_task: 0,
-                  QA: 0,
-                  last_login: new Date().toISOString()
-              }])
-              .select()
-              .single();
-              
-          if (createError) throw createError;
-          
-          currentUser = newUser;
-          
-          // Check for calendar-based resets (affects all users)
-          await checkCalendarResets();
-          
-          showMainApp();
+        const { data: signUpData, error: createError } = await supabase.auth.signUp({
+          email: emailForAuth,
+          password
+        })
+
+        if (createError) throw createError;
+        
+        await createProfile(signUpData.user.id, password, now, name);
+        
+        const { data: signInAfterSignUp, error: postSignInError } = await supabase.auth.signInWithPassword({
+          email: emailForAuth,
+          password
+        });
+        
+        if (postSignInError) throw postSignInError;
+        
+        await loadAppAfterAuth();
+        return;
       }
-  } catch (error) {
-      console.error('Auth error:', error);
-      errorElement.textContent = 'Authentication failed. Please try again.';
+
+      if (signInError.message.includes("Invalid login credentials")) {
+        errorElement.textContent = "Incorrect password";
+        return;
+      }
+
+      throw signInError;
+    }
+
+  } catch (e) {
+    console.error('Auth error:', e);
+    errorElement.textContent = (e.message) ? e.message : 'Authentication failed. Please try again.';
   }
+}
+
+async function createProfile(userId, password, timestamp = new Date(), username) {
+  // Insert into profiles table (id matches auth.users.id)
+  const { error } = await supabase
+    .from('profiles')
+    .insert([{ id: userId, username, password, week_count_task: 0, created_at: timestamp, admin: false }]);
+  if (error) throw error;
+}
+
+async function ensureProfileExists(userId, usernameFallback) {
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('id, username, admin')
+    .eq('id', userId)
+    .maybeSingle();
+  if (error) throw error;
+
+  if (!data) {
+    // create minimal profile
+    await createProfile(userId, usernameFallback || `user-${userId.slice(0,6)}`);
+  }
+}
+
+async function loadAppAfterAuth() {
+  // Get the authenticated user and profile and initialize app UI
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) {
+    // not authenticated
+    return;
+  }
+
+  // Optionally fetch profile
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('*')
+    .eq('id', user.id)
+    .maybeSingle();
+
+  window.currentUser = { authUser: user, profile };
+
+  // Hide auth UI, show app, initialize data loads
+  showMainApp();
 }
 
 // General Event Listeners
 
 function initializeEventListeners() {
-    // Task input enter key
-    document.getElementById('taskInput').addEventListener('keypress', function(event) {
-        if (event.key === 'Enter') {
-            addTask();
-        }
-    });
 
     // Auth input enter keys
     document.getElementById('authName').addEventListener('keypress', function(event) {
-        if (event.key === 'Enter') {
-            const passwordSection = document.getElementById('authPasswordSection');
-            if (passwordSection.style.display === 'none') {
-                handleAuth();
-            } else {
-                document.getElementById('authPassword').focus();
-            }
+      if (event.key === 'Enter') {
+        const passwordSection = document.getElementById('authPasswordSection');
+        if (passwordSection.style.display === 'none') {
+            handleAuth();
+        } else {
+            document.getElementById('authPassword').focus();
         }
+      }
     });
 
     document.getElementById('authPassword').addEventListener('keypress', function(event) {
-        if (event.key === 'Enter') {
-            const confirmSection = document.getElementById('confirmPasswordSection');
-            if (confirmSection.style.display === 'none') {
-                handleAuth();
-            } else {
-                document.getElementById('authConfirmPassword').focus();
-            }
+      if (event.key === 'Enter') {
+        const confirmSection = document.getElementById('confirmPasswordSection');
+        if (confirmSection.style.display === 'none') {
+            handleAuth();
+        } else {
+            document.getElementById('authConfirmPassword').focus();
         }
+      }
     });
 
     document.getElementById('authConfirmPassword').addEventListener('keypress', function(event) {
-        if (event.key === 'Enter') {
-            handleAuth();
-        }
+      if (event.key === 'Enter') {
+          handleAuth();
+      }
+    });
+
+    // Task input enter key
+    document.getElementById('taskInput').addEventListener('keypress', function(event) {
+      if (event.key === 'Enter') {
+        addTask();
+      }
     });
 
     // Task filter buttons
     document.addEventListener('click', function(e) {
-        if (e.target.classList.contains('filter')) {
-            currentTaskFilter = e.target.dataset.filter;
-            currentUserFilter = '';
-            
-            // Update active button
-            document.querySelectorAll('.filter').forEach(btn => {
-                btn.classList.remove('active');
-            });
-            e.target.classList.add('active');
-            
-            // Reset user filter dropdown
-            document.getElementById('userFilter').value = '';
-            
-            // Filter tasks
-            filterTasks();
-        }
+      if (e.target.classList.contains('filter')) {
+        currentTaskFilter = e.target.dataset.filter;
+        currentUserFilter = '';
+        
+        // Update active button
+        document.querySelectorAll('.filter').forEach(btn => {
+            btn.classList.remove('active');
+        });
+        e.target.classList.add('active');
+        
+        // Reset user filter dropdown
+        document.getElementById('userFilter').value = '';
+        
+        // Filter tasks
+        filterTasks();
+      }
     });
 }
 
 //Dependent functions
 
 function showPasswordInput() {
-    document.getElementById('authPasswordSection').style.display = 'block';
-    document.getElementById('authPassword').focus();
-    document.getElementById('authSubmit').textContent = 'Login';
+  document.getElementById('authPasswordSection').style.display = 'block';
+  document.getElementById('authPassword').focus();
+  document.getElementById('authSubmit').textContent = 'Login';
 }
 
 function showPasswordCreation() {
-    document.getElementById('authPasswordSection').style.display = 'block';
-    document.getElementById('confirmPasswordSection').style.display = 'block';
-    document.getElementById('authPassword').placeholder = 'Create password (min 4 chars)';
-    document.getElementById('authPassword').focus();
-    document.getElementById('authSubmit').textContent = 'Create Account';
+  document.getElementById('authPasswordSection').style.display = 'block';
+  document.getElementById('confirmPasswordSection').style.display = 'block';
+  document.getElementById('authPassword').placeholder = 'Create password (min 4 chars)';
+  document.getElementById('authPassword').focus();
+  document.getElementById('authSubmit').textContent = 'Create Account';
 }
 
 function showMainApp() {
-    document.getElementById('authModal').style.display = 'none';
-    document.getElementById('appContainer').style.display = 'block';
-    document.getElementById('currentUser').textContent = currentUser.username;
-    
-    // Initialize app
-    loadTasks();
+  document.getElementById('authModal').style.display = 'none';
+  document.getElementById('appContainer').style.display = 'block';
+  document.getElementById('currentUser').textContent = currentUser.username;
+  
+  // Initialize app
+  loadTasks();
 }
 
 function logout() {
-    currentUser = null;
-    document.getElementById('authModal').style.display = 'flex';
-    document.getElementById('appContainer').style.display = 'none';
-    
-    // Reset form
-    document.getElementById('authName').value = '';
-    document.getElementById('authPassword').value = '';
-    document.getElementById('authConfirmPassword').value = '';
-    document.getElementById('authPasswordSection').style.display = 'none';
-    document.getElementById('confirmPasswordSection').style.display = 'none';
-    document.getElementById('authSubmit').textContent = 'Continue';
-    document.getElementById('authError').textContent = '';
+  currentUser = null;
+  document.getElementById('authModal').style.display = 'flex';
+  document.getElementById('appContainer').style.display = 'none';
+  
+  // Reset form
+  document.getElementById('authName').value = '';
+  document.getElementById('authPassword').value = '';
+  document.getElementById('authConfirmPassword').value = '';
+  document.getElementById('authPasswordSection').style.display = 'none';
+  document.getElementById('confirmPasswordSection').style.display = 'none';
+  document.getElementById('authSubmit').textContent = 'Continue';
+  document.getElementById('authError').textContent = '';
 }
 
 // Task edit
