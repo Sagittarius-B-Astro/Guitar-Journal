@@ -96,30 +96,6 @@ function displayTasks(tasks) {
     });
 }
 
-function createTagSelector(currentTagId, currentColor, currentTagName) {
-    // Display as tag label (like other users) but with dropdown functionality
-    return `
-        <div class="tag-selector">
-            <div class="tag-display editable" style="background-color: ${currentColor}" data-tag-id="${currentTagId || ''}" title="Click to change tag">
-                ${currentTagName}
-                <div class="tag-dropdown">
-                    ${colors.map(color => {
-                        const tagForColor = window.userTags?.find(tag => tag.color === color);
-                        const tagName = tagForColor?.tag_name || getDefaultTagName(color);
-                        return `
-                            <div class="tag-option" 
-                                 style="background-color: ${color}" 
-                                 data-color="${color}" 
-                                 title="${tagName}">
-                            </div>
-                        `;
-                    }).join('')}
-                </div>
-            </div>
-        </div>
-    `;
-}
-
 // Add this global click listener flag
 let globalClickListenerAttached = false;
 
@@ -403,20 +379,14 @@ async function markDone(taskElement) {
             await supabase
                 .from('users')
                 .update({ 
-                    tasks_completed: currentUser.tasks_completed + 1,
                     week_count_task: currentUser.week_count_task + 1,
-                    day_count_task: currentUser.day_count_task + 1
                 })
                 .eq('id', currentUser.id);
             
-            currentUser.tasks_completed++;
             currentUser.week_count_task++;
-            currentUser.day_count_task++;
-            showAffirmation();
         }
 
         loadTasks();
-        loadLeaderboards();
     } catch (error) {
         console.error('Error updating task:', error);
     }
