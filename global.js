@@ -18,100 +18,81 @@ async function handleAuth() {
   const errorElement = document.getElementById('authError');
   
   if (!name) {
-    errorElement.textContent = 'Please enter your name';
+    errorElement.textContent = 'Please enter your username';
     return;
   }
   
   const emailForAuth = `${encodeURIComponent(name)}@guitarjournal.example.com`;
+  
+  const { data: checkExist, error: checkExistError } = await supabase
+    .from('profiles')
+    .select('id, username, admin')
+    .eq('username', name.toLowerCase())
+    .maybeSingle();
+
+  if (checkExistError) throw checkExistError;
+
+  console.log(checkExist, checkExistError);
 
   try {
-    // Check if user exists
-    const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
-      email: emailForAuth,
-      password
-    });
-    
-    if (signInData?.user) {
-      // User exists, verify password
-      await ensureProfileExists(signInData.user.id, name);
-      await showPasswordInput();
-      await loadAppAfterAuth();
-      return;
-    }
-    
-    if (signInError) {
-      if (signInError.message.includes("Invalid login credentials")) {
-
-        if (!password) {
-          showPasswordCreation();
-          return;
-        }
-
-        if (password !== confirmPassword) {
-          errorElement.textContent = 'Passwords do not match';
-          return;
-        }
-          
-        if (password.length < 6) {
-          errorElement.textContent = 'Password must be at least 6 characters';
-          return;
-        }
-          
-          // Create new user
-        const { data: signUpData, error: createError } = await supabase.auth.signUp({
-          email: emailForAuth,
-          password
-        })
-
-        if (createError) throw createError;
-        
-        await createProfile(signUpData.user.id, password, now, name);
-        
-        const { data: signInAfterSignUp, error: postSignInError } = await supabase.auth.signInWithPassword({
-          email: emailForAuth,
-          password
-        });
-        
-        if (postSignInError) throw postSignInError;
-        
-        await loadAppAfterAuth();
+    if (checkExist) {
+      if (!password) {
+        showPasswordInput();
         return;
       }
 
-      if (signInError.message.includes("Invalid login credentials")) {
+      // Try sign in
+      const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+        email: emailForAuth,
+        password
+      });
+
+      if (signInError) {
         errorElement.textContent = "Incorrect password";
         return;
       }
 
-      throw signInError;
-    }
+      await loadAppAfterAuth();
 
+    } else {
+      if (!password) {
+          showPasswordCreation();
+          return;
+      }
+      if (password !== confirmPassword) {
+          errorElement.textContent = 'Passwords do not match';
+          return;
+      }
+        
+      if (password.length < 6) {
+        errorElement.textContent = 'Password must be at least 6 characters';
+        return;
+      }
+        
+        // Create new user
+      const { data: signUpData, error: createError } = await supabase.auth.signUp({
+        email: emailForAuth,
+        password
+      })
+
+      if (createError) throw createError;
+      
+      await createProfile(signUpData.user.id, name, password);
+      await loadAppAfterAuth();
+    }
   } catch (e) {
     console.error('Auth error:', e);
     errorElement.textContent = (e.message) ? e.message : 'Authentication failed. Please try again.';
   }
+
+  
 }
 
-async function createProfile(userId, password, timestamp = new Date(), username) {
-  // Insert into profiles table (id matches auth.users.id)
+async function createProfile(userId, username, password) {
   const { error } = await supabase
     .from('profiles')
-    .insert([{ id: userId, username, password, week_count_task: 0, created_at: timestamp, admin: false }]);
+    .insert([{ id: userId, username: username, password: password, week_count_task: 0, created_at: new Date(), admin: false }]);
   if (error) throw error;
-}
-
-async function ensureProfileExists(userId, usernameFallback) {
-  const { data, error } = await supabase
-    .from('profiles')
-    .select('id, username, admin')
-    .eq('id', userId)
-    .maybeSingle();
-  if (error) throw error;
-
-  if (!data) {
-    // create minimal profile
-    await createProfile(userId, usernameFallback || `user-${userId.slice(0,6)}`);
-  }
 }
 
 async function loadAppAfterAuth() {
@@ -214,7 +195,6 @@ function showPasswordCreation() {
 
 function showMainApp() {
   document.getElementById('authModal').style.display = 'none';
-  document.getElementById('appContainer').style.display = 'block';
   document.getElementById('currentUser').textContent = currentUser.username;
   
   // Initialize app
