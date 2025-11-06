@@ -14,7 +14,6 @@ document.addEventListener('DOMContentLoaded', function() {
 async function handleAuth() {
   const name = document.getElementById('authName').value.trim();
   const password = document.getElementById('authPassword').value;
-  const confirmPassword = document.getElementById('authConfirmPassword').value;
   const errorElement = document.getElementById('authError');
   
   if (!name) {
@@ -24,68 +23,38 @@ async function handleAuth() {
   
   const emailForAuth = `${encodeURIComponent(name)}@guitarjournal.example.com`;
   
-  const { data: checkExist, error: checkExistError } = await supabase
-    .from('profiles')
-    .select('id, username, admin')
-    .eq('username', name.toLowerCase())
-    .maybeSingle();
-
-  if (checkExistError) throw checkExistError;
-
-  console.log(checkExist, checkExistError);
-
   try {
-    if (checkExist) {
-      if (!password) {
-        showPasswordInput();
-        return;
-      }
-
-      // Try sign in
-      const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
-        email: emailForAuth,
-        password
-      });
-
-      if (signInError) {
-        errorElement.textContent = "Incorrect password";
-        return;
-      }
-
-      await loadAppAfterAuth();
-
-    } else {
-      if (!password) {
-          showPasswordCreation();
-          return;
-      }
-      if (password !== confirmPassword) {
-          errorElement.textContent = 'Passwords do not match';
-          return;
-      }
-        
-      if (password.length < 6) {
-        errorElement.textContent = 'Password must be at least 6 characters';
-        return;
-      }
-        
-        // Create new user
+    const { data, error: checkExistError } = await supabase.auth.signInWithPassword({
+      email: emailForAuth,
+      password: password
+    })
+    
+    if (checkExistError && checkExistError.message.includes('Invalid login credentials')) {
+            
+      // Create new user
       const { data: signUpData, error: createError } = await supabase.auth.signUp({
         email: emailForAuth,
-        password
+        password: password
       })
 
       if (createError) throw createError;
       
       await createProfile(signUpData.user.id, name, password);
-      await loadAppAfterAuth();
     }
   } catch (e) {
-    console.error('Auth error:', e);
-    errorElement.textContent = (e.message) ? e.message : 'Authentication failed. Please try again.';
+    console.error('Signup check error:', e);
+    errorElement.textContent = (e.message) ? e.message : 'Unexpected error occurred';
   }
 
-  
+  // Try sign in
+  const { data, error: signInError } = await supabase.auth.signInWithPassword({
+    email: emailForAuth,
+    password: password
+  });
+  if (signInError) throw signInError;  
+
+  await loadAppAfterAuth();
+
 }
 
 async function createProfile(userId, username, password) {
@@ -97,7 +66,7 @@ async function createProfile(userId, username, password) {
 
 async function loadAppAfterAuth() {
   // Get the authenticated user and profile and initialize app UI
-  const { data: { user } } = await supabase.auth.getUser();
+  const { data: user } = await supabase.auth.getUser();
   if (!user) {
     // not authenticated
     return;
@@ -119,7 +88,6 @@ async function loadAppAfterAuth() {
 // General Event Listeners
 
 function initializeEventListeners() {
-
     // Auth input enter keys
     document.getElementById('authName').addEventListener('keypress', function(event) {
       if (event.key === 'Enter') {
@@ -179,23 +147,10 @@ function initializeEventListeners() {
 
 //Dependent functions
 
-function showPasswordInput() {
-  document.getElementById('authPasswordSection').style.display = 'block';
-  document.getElementById('authPassword').focus();
-  document.getElementById('authSubmit').textContent = 'Login';
-}
-
-function showPasswordCreation() {
-  document.getElementById('authPasswordSection').style.display = 'block';
-  document.getElementById('confirmPasswordSection').style.display = 'block';
-  document.getElementById('authPassword').placeholder = 'Create password (min 4 chars)';
-  document.getElementById('authPassword').focus();
-  document.getElementById('authSubmit').textContent = 'Create Account';
-}
-
 function showMainApp() {
   document.getElementById('authModal').style.display = 'none';
   document.getElementById('currentUser').textContent = currentUser.username;
+  document.getElementById('authSubmit').textContent = 'Login';
   
   // Initialize app
   loadTasks();
