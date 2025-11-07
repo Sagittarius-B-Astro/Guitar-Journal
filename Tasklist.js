@@ -6,8 +6,7 @@ async function loadTasks() {
             .from('tasks')
             .select(`
                 *, 
-                users(username),
-                tags(color, tag_name)
+                users(username), 
             `)
             .order('created_at', { ascending: true });
 
@@ -61,7 +60,7 @@ function displayTasks(tasks) {
         const li = document.createElement('li');
         li.dataset.taskId = task.id;
         
-        const canModify = currentUser && task.user_id === currentUser.id;
+        const canModify = (currentUser.admin = 'TRUE');
         
         // Create tag element
         const tagColor = task.tags?.color || '#CCCCCC';
@@ -79,7 +78,6 @@ function displayTasks(tasks) {
             li.classList.add('finished');
         }
 
-        // Add event listeners only for user's own tasks
         if (canModify) {
             const taskContentSpan = li.querySelector('.task-content');
             taskContentSpan.addEventListener('dblclick', function() {
@@ -351,7 +349,6 @@ async function addTask() {
                 tag_id: null
             }])
             .select();
-
         if (error) throw error;
 
         taskInput.value = '';
