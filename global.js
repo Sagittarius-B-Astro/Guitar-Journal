@@ -79,7 +79,11 @@ async function loadAppAfterAuth() {
     .eq('id', user.id)
     .maybeSingle();
 
-  window.currentUser = { authUser: user, profile };
+  // Profile not retrieving
+
+  window.currentUser = { authUser: user, profile: profile };
+
+  console.log(currentUser)
 
   // Hide auth UI, show app, initialize data loads
   showMainApp();
