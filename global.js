@@ -3,6 +3,8 @@ const SUPABASE_URL = "https://myywayfyfvdqnukaiecd.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im15eXdheWZ5ZnZkcW51a2FpZWNkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE2OTg1NzYsImV4cCI6MjA3NzI3NDU3Nn0.R12_dB-qYcLED7jdU49FT8KjV3a6S3FyfYR8Yds9_4U";
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+let currentTaskFilter = 'all';
+
 // Load DOM
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -66,8 +68,8 @@ async function createProfile(userId, username, password) {
 
 async function loadAppAfterAuth() {
   // Get the authenticated user and profile and initialize app UI
-  const { data: user } = await supabase.auth.getUser();
-  if (!user) {
+  const { data: userData, error } = await supabase.auth.getUser();
+  if (error || !userData) {
     // not authenticated
     return;
   }
@@ -76,14 +78,10 @@ async function loadAppAfterAuth() {
   const { data: profile } = await supabase
     .from('profiles')
     .select('*')
-    .eq('id', user.id)
+    .eq('id', userData.user.id)
     .maybeSingle();
 
-  // Profile not retrieving
-
-  window.currentUser = { authUser: user, profile: profile };
-
-  console.log(currentUser)
+  window.currentUser = { user: userData.user, profile: profile };
 
   // Hide auth UI, show app, initialize data loads
   showMainApp();
@@ -177,6 +175,7 @@ function logout() {
 
 // Task edit
 
+/*
 const categories = ["All", "Composition / Cover", "Ear Training / Theory / Tab", "Website Dev"];
 let activeCategory = "All";
 
@@ -307,3 +306,4 @@ document.addEventListener("DOMContentLoaded", () => {
 
   checkUserSession();
 });
+*/
