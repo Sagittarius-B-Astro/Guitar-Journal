@@ -6,7 +6,7 @@ async function loadTasks() {
             .from('tasks')
             .select(`
                 *, 
-                users(username), 
+                profiles(username) 
             `)
             .order('created_at', { ascending: true });
 
@@ -42,7 +42,7 @@ function filterTasks() {
             filteredTasks = window.allTasks.filter(task => task.tag_id === 'theory');
             break;
         case 'dev':
-            filteredTasks = window.allTasks.filter(task => task.tag_id === 'user');
+            filteredTasks = window.allTasks.filter(task => task.tag_id === 'dev');
             break
         default:
             filteredTasks = window.allTasks;
@@ -71,7 +71,6 @@ function displayTasks(tasks) {
             ${canModify ? `<button class="remove" onclick="removeTask(this.parentNode)">✕</button>` : ''}
             ${canModify ? createTagSelector(task.tag_id, tagColor, tagName) : `<div class="tag-display" style="background-color: ${tagColor}">${tagName}</div>`}
             <span class="task-content">${task.task_text}</span>
-            <span class="task-owner">by ${task.users.username}</span>
         `;
 
         if (task.is_done) {
@@ -158,6 +157,30 @@ function setupTagSelector(taskElement, taskId, currentTagId) {
             }
         });
     }
+}
+
+function createTagSelector(currentTagId, currentColor, currentTagName) {
+    // Display as tag label (like other users) but with dropdown functionality
+    return `
+        <div class="tag-selector">
+            <div class="tag-display editable" style="background-color: ${currentColor}" data-tag-id="${currentTagId || ''}" title="Click to change tag">
+                ${currentTagName}
+                <div class="tag-dropdown">
+                    ${colors.map(color => {
+                        const tagForColor = window.userTags?.find(tag => tag.color === color);
+                        const tagName = tagForColor?.tag_name || getDefaultTagName(color);
+                        return `
+                            <div class="tag-option" 
+                                 style="background-color: ${color}" 
+                                 data-color="${color}" 
+                                 title="${tagName}">
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+            </div>
+        </div>
+    `;
 }
 
 async function updateTaskTag(taskId, color) {
@@ -343,7 +366,7 @@ async function addTask() {
         const { data, error } = await supabase
             .from('tasks')
             .insert([{
-                user_id: currentUser.id,
+                user_id: currentUser.user.id,
                 task_text: taskText,
                 is_done: false,
                 tag_id: null
@@ -374,7 +397,7 @@ async function markDone(taskElement) {
         if (isDone) {
             // Increment task completion count
             await supabase
-                .from('users')
+                .from('profiles')
                 .update({ 
                     week_count_task: currentUser.week_count_task + 1,
                 })
