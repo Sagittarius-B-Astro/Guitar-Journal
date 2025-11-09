@@ -151,10 +151,9 @@ function initializeEventListeners() {
 
 function showMainApp() {
   document.getElementById('authModal').style.display = 'none';
-  document.getElementById('currentUser').textContent = currentUser.username;
   document.getElementById('authSubmit').textContent = 'Login';
   
-  // Initialize app
+ // Initialize app
   loadTasks();
 }
 
