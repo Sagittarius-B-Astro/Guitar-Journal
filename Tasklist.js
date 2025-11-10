@@ -19,6 +19,11 @@ async function loadTasks() {
     }
 }
 
+const taskTags = [
+    {name: 'Play', color: '#70B2B2'},
+    {name: 'Theory', color: '#9ECFD4'},
+    {name: 'Dev', color: '#E5E9C5'}
+]
 function getDefaultTagName(color) {
     const defaultNames = {
         '#016B61': 'All',
@@ -36,13 +41,13 @@ function filterTasks() {
     
     switch (currentTaskFilter) {
         case 'play':
-            filteredTasks = window.allTasks.filter(task => task.tag_id === 'play');
+            filteredTasks = window.allTasks.filter(task => task.tag_id === 'Play');
             break;
         case 'theory':
-            filteredTasks = window.allTasks.filter(task => task.tag_id === 'theory');
+            filteredTasks = window.allTasks.filter(task => task.tag_id === 'Theory');
             break;
         case 'dev':
-            filteredTasks = window.allTasks.filter(task => task.tag_id === 'dev');
+            filteredTasks = window.allTasks.filter(task => task.tag_id === 'Dev');
             break
         default:
             filteredTasks = window.allTasks;
@@ -59,212 +64,108 @@ function displayTasks(tasks) {
     tasks.forEach(task => {
         const li = document.createElement('li');
         li.dataset.taskId = task.id;
-        
-        const canModify = (currentUser.admin = 'TRUE');
-        
-        // Create tag element
-        const tagColor = task.tags?.color || '#CCCCCC';
-        const tagName = task.tags?.tag_name || 'No Tag';
-        
+
+        const canModify = currentUser.profile.admin === true;
+        const tagInfo = taskTags.find(t => t.name === task.tag_id) || { color: '#CCC', name: 'No Tag' };
+
         li.innerHTML = `
-            ${canModify ? `<button class="done" onclick="markDone(this.parentNode)">✓</button>` : ''}
-            ${canModify ? `<button class="remove" onclick="removeTask(this.parentNode)">✕</button>` : ''}
-            ${canModify ? createTagSelector(task.tag_id, tagColor, tagName) : `<div class="tag-display" style="background-color: ${tagColor}">${tagName}</div>`}
-            <span class="task-content">${task.task_text}</span>
+        ${canModify ? `<button class="done" onclick="markDone(this.parentNode)">✓</button>` : ''}
+        ${canModify ? `<button class="remove" onclick="removeTask(this.parentNode)">✕</button>` : ''}
+        ${canModify ? createTagSelector(task.tag_id) : `<div class="tag-display" style="background-color: ${tagInfo.color}">${tagInfo.name}</div>`}
+        <span class="task-content">${task.task_text}</span>
         `;
 
-        if (task.is_done) {
-            li.classList.add('finished');
-        }
+        if (task.is_done) li.classList.add('finished');
 
         if (canModify) {
-            const taskContentSpan = li.querySelector('.task-content');
-            taskContentSpan.addEventListener('dblclick', function() {
-                editTask(li, task.id, task.task_text);
-            });
-            taskContentSpan.style.cursor = 'pointer';
-            taskContentSpan.title = 'Double-click to edit';
-            
-            // Setup tag functionality
-            setupTagSelector(li, task.id, task.tag_id);
+        setupTagSelector(li, task.id);
         }
 
         tasksList.appendChild(li);
     });
 }
 
+
 // Add this global click listener flag
 let globalClickListenerAttached = false;
 
-function setupTagSelector(taskElement, taskId, currentTagId) {
-    const tagSelector = taskElement.querySelector('.tag-selector');
-    const tagDisplay = taskElement.querySelector('.tag-display.editable');
+function setupTagSelector(taskElement, taskId) {
+    const tagDisplay = taskElement.querySelector('.tag-display');
     const dropdown = taskElement.querySelector('.tag-dropdown');
-    
-    if (!tagSelector || !tagDisplay || !dropdown) {
-        console.error('Tag elements not found');
-        return;
-    }
-    
-    // Remove any existing event listeners (prevent duplicates)
-    const newTagDisplay = tagDisplay.cloneNode(true);
-    tagDisplay.parentNode.replaceChild(newTagDisplay, tagDisplay);
-    
-    const newDropdown = newTagDisplay.querySelector('.tag-dropdown');
-    
-    // Toggle dropdown on click
-    newTagDisplay.addEventListener('click', (e) => {
+
+    if (!tagDisplay || !dropdown) return;
+
+    // Toggle dropdown
+    tagDisplay.addEventListener('click', e => {
         e.stopPropagation();
-        
-        // Close other dropdowns first
         document.querySelectorAll('.tag-dropdown.show').forEach(d => {
-            if (d !== newDropdown) d.classList.remove('show');
+        if (d !== dropdown) d.classList.remove('show');
         });
-        
-        newDropdown.classList.toggle('show');
+        dropdown.classList.toggle('show');
     });
-    
-    // Handle tag option selection
-    const tagOptions = newDropdown.querySelectorAll('.tag-option');
-    tagOptions.forEach(option => {
-        option.addEventListener('click', async (e) => {
-            e.stopPropagation();
-            const selectedColor = e.target.closest('.tag-option').dataset.color;
-            
-            // Immediately hide dropdown and show visual feedback
-            newDropdown.classList.remove('show');
-            option.style.opacity = '0.5';
-            
-            try {
-                await updateTaskTag(taskId, selectedColor);
-            } catch (error) {
-                console.error('Error updating tag:', error);
-            } finally {
-                option.style.opacity = '';
-            }
+
+    // Handle tag click
+    dropdown.querySelectorAll('.tag-option').forEach(option => {
+        option.addEventListener('click', async e => {
+        e.stopPropagation();
+        const tagName = e.target.dataset.tag;
+        dropdown.classList.remove('show');
+        await updateTaskTag(taskId, tagName);
         });
     });
-    
-    // Set up global click listener only once
-    if (!globalClickListenerAttached) {
-        globalClickListenerAttached = true;
-        
-        document.addEventListener('click', (e) => {
-            if (!e.target.closest('.tag-selector') && !e.target.closest('.tag-filter')) {
-                document.querySelectorAll('.tag-dropdown.show').forEach(d => {
-                    d.classList.remove('show');
-                });
-            }
-        });
-    }
+
+    // Global click to close dropdowns
+    document.addEventListener('click', e => {
+        if (!e.target.closest('.tag-selector')) {
+        dropdown.classList.remove('show');
+        }
+    });
 }
 
-function createTagSelector(currentTagId, currentColor, currentTagName) {
-    // Display as tag label (like other users) but with dropdown functionality
-    return `
-        <div class="tag-selector">
-            <div class="tag-display editable" style="background-color: ${currentColor}" data-tag-id="${currentTagId || ''}" title="Click to change tag">
-                ${currentTagName}
-                <div class="tag-dropdown">
-                    ${colors.map(color => {
-                        const tagForColor = window.userTags?.find(tag => tag.color === color);
-                        const tagName = tagForColor?.tag_name || getDefaultTagName(color);
-                        return `
-                            <div class="tag-option" 
-                                 style="background-color: ${color}" 
-                                 data-color="${color}" 
-                                 title="${tagName}">
-                            </div>
-                        `;
-                    }).join('')}
-                </div>
+
+function createTagSelector(currentTagName) {
+  const currentTag = taskTags.find(t => t.name === currentTagName) || taskTags[0];
+  
+  return `
+    <div class="tag-selector">
+      <div class="tag-display editable"
+           style="background-color: ${currentTag.color}"
+           data-tag="${currentTag.name}"
+           title="Click to change tag">
+        ${currentTag.name}
+        <div class="tag-dropdown">
+          ${taskTags.map(tag => `
+            <div class="tag-option"
+                 style="background-color: ${tag.color}"
+                 data-tag="${tag.name}"
+                 title="${tag.name}">
             </div>
+          `).join('')}
         </div>
-    `;
+      </div>
+    </div>
+  `;
 }
 
-async function updateTaskTag(taskId, color) {
-    // Prevent multiple simultaneous calls
-    if (updateTaskTag.isUpdating) {
-        console.log('Update already in progress, skipping...');
-        return;
-    }
-    
-    updateTaskTag.isUpdating = true;
-    
-    try {
-        console.log('Updating task', taskId, 'with color', color);
-        
-        // Validate inputs
-        if (!taskId || !color || !currentUser) {
-            throw new Error('Missing required data for tag update');
-        }
-        
-        // Ensure user tags are loaded
-        if (!window.userTags) {
-            await loadUserTags();
-        }
-        
-        // Find the tag ID for this color and validate ownership
-        const userTag = window.userTags?.find(tag => 
-            tag.color === color && tag.user_id === currentUser.id
-        );
-        
-        if (!userTag) {
-            throw new Error('Tag not found or does not belong to user');
-        }
-        
-        // Validate task ownership
-        const task = window.allTasks?.find(t => t.id.toString() === taskId.toString());
-        if (!task || task.user_id !== currentUser.id) {
-            throw new Error('Task not found or access denied');
-        }
-        
-        console.log('Found tag:', userTag);
-        
-        const { data, error } = await supabase
-            .from('tasks')
-            .update({ tag_id: userTag.id })
-            .eq('id', taskId)
-            .eq('user_id', currentUser.id)
-            .select();
+async function updateTaskTag(taskId, tagName) {
+  try {
+    const { data, error } = await supabase
+        .from('tasks')
+        .update({ tag_id: tagName })
+        .eq('id', taskId)
+        .select();
 
-        if (error) {
-            console.error('Supabase error:', error);
-            throw new Error(`Database error: ${error.message}`);
-        }
-        
-        if (!data || data.length === 0) {
-            throw new Error('No task was updated');
-        }
-        
-        console.log('Task updated successfully:', data);
+    if (error) throw error;
 
-        // Update local data immediately
-        const localTask = window.allTasks?.find(t => t.id.toString() === taskId.toString());
-        if (localTask) {
-            localTask.tag_id = userTag.id;
-            localTask.tags = userTag;
-        }
-        
-        // Reload tasks
-        await loadTasks();
-        
-    } catch (error) {
-        console.error('Error updating task tag:', error);
-        
-        let errorMessage = 'Failed to update tag.';
-        if (error.message.includes('not found')) {
-            errorMessage = 'Tag or task not found.';
-        } else if (error.message.includes('access denied')) {
-            errorMessage = 'You do not have permission to update this task.';
-        }
-        
-        alert(errorMessage + ' Please try refreshing the page.');
-        
-    } finally {
-        updateTaskTag.isUpdating = false;
-    }
+    // Update local state
+    const task = window.allTasks.find(t => t.id === taskId);
+    if (task) task.tag_id = tagName;
+
+    await loadTasks();
+  } catch (error) {
+    console.error('Error updating tag:', error);
+    alert('Failed to update tag. Please try again.');
+  }
 }
 
 // New function to handle task editing
@@ -389,9 +290,11 @@ async function markDone(taskElement) {
     try {
         const { error } = await supabase
             .from('tasks')
-            .update({ is_done: isDone })
+            .update([{ 
+                is_done: isDone,
+                completed_at: new Date() 
+            }])
             .eq('id', taskId);
-
         if (error) throw error;
 
         if (isDone) {
@@ -399,11 +302,11 @@ async function markDone(taskElement) {
             await supabase
                 .from('profiles')
                 .update({ 
-                    week_count_task: currentUser.week_count_task + 1,
+                    week_count_task: currentUser.profile.week_count_task + 1,
                 })
-                .eq('id', currentUser.id);
+                .eq('id', currentUser.user.id);
             
-            currentUser.week_count_task++;
+            currentUser.profile.week_count_task++;
         }
 
         loadTasks();
