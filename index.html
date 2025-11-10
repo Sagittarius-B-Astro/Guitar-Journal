@@ -5,7 +5,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="guitarstyle.css">
-    <link href="https://fonts.googleapis.com/css2?family=Fredericka+the+Great&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=IBM+Plex+Sans:wght@400;500&display=swap" rel="stylesheet">
     <title>Guitar Journal</title>
   </head>
   <body>
@@ -16,10 +16,9 @@
         <div class="auth-container">
             <h2>Guitar Journal Login</h2>
             <div id="authError" class="error-message"></div>
-            
             <input type="text" id="authName" placeholder="Enter your name" />
             <div id="authPasswordSection">
-                <input type="password" id="authPassword" placeholder="Enter password" />
+                <input type="password" id="authPassword" placeholder="Enter password (min. 6 characters)" />
                 <div id="confirmPasswordSection" style="display: none;">
                     <input type="password" id="authConfirmPassword" placeholder="Confirm password" />
                 </div>
@@ -31,10 +30,8 @@
 
     <!-- Top Link Bar -->
     <header class="top-container">
-      <div class="guitar-main">
-        <a href="">
-          <img src="GuitarLogo.png" alt="Guitar Journal" style="width:150px;height:80px;">
-        </a>
+      <div class="top-links">
+        <a href="index.html">Guitar Journal</a>
       </div>
       <div class="top-links">
           <a href="index.html#Exp">Brain Dump</a> <!-- Add proper Brain Dump / Skill Tree Link -->
@@ -55,7 +52,7 @@
 
     <!-- Tasklist -->
     <section class="Goals">
-      <h2>Goals</h2>
+      <h1>Goals</h1>
       <div class="enter-task">
         <input type="text" id="task-text" placeholder="Enter task:"> 
         <button onclick="addTask()">Add Task</button>
@@ -75,7 +72,7 @@
     
     <!-- Weekly -->
     <section class="Weekly">
-      <h2>Weekly</h2>
+      <h1>Weekly</h1>
       <div class="weekly-posts">
       </div>
     </section>
@@ -84,7 +81,7 @@
     
     <!-- Videos -->
     <section class="Videos">
-      <h2>Videos</h2>
+      <h1>Videos</h1>
       <div class="enter-video">
         <input type="text" id="video-link" placeholder="Enter video link:"> 
         <button onclick="addVideo()">Add Video</button>
