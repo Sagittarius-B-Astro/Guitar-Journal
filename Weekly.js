@@ -4,14 +4,16 @@ async function loadWeeks() {
             .from('tasks')
             .select(`
                 *, 
-                profiles(username),
-                is_Done === true                
+                profiles(username)
             `)
             .order('created_at', { ascending: true });
 
         if (error) throw error;
 
-        window.doneTasks = tasks; // Store for filtering
+        // Only completed tasks
+        const doneTasks = tasks.filter(t => t.is_done);
+        window.doneTasks = doneTasks; // Store for filtering
+
         displayByWeek();
     } catch (error) {
         console.error('Error loading completed tasks:', error);
@@ -19,40 +21,60 @@ async function loadWeeks() {
 }
 
 async function displayByWeek() {
+    const tasksList = document.getElementById('weekly-posts');
+    tasksList.innerHTML = '';
     let tasks = window.doneTasks
+    let weeks = {}
 
-    try {
-        const { data: weeks, error } = await supabase
-            .from('weekly')
-            .select(`
-                *, 
-                profiles(username),
-            `)
-            .order('week_of', { ascending: true });
+    tasks.forEach(task => {
+        if (task.is_done) {
+            const monday = getMonday(task.completed_at);
+            const week_of = `Week of ${monday.toLocaleDateString()}`;
 
-        if (error) throw error;
-
-        tasks.forEach(task => {
-            if (task.is_done) {
-                if (task.completed_at && task.completed_at ) {
-
-                } else {
-                    const weekSummary = document.createElement('weekSummary');
-                    weekSummary.dataset.user_id = currentUser.profile.id;
-
-                    const canModify = currentUser.profile.admin === true;
-
-                    weekSummary.innerHTML = `
-                    ${canModify ? `<button class="done" onclick="markUndone(this.parentNode)">↑</button>` : ''}
-                    ${canModify ? `<button class="remove" onclick="removeTask(this.parentNode)">✕</button>` : ''}
-                    <span class="task-content">Week of ${week.week_of}</span>
-                    `;
-                }
+            if (weeks.week_of) {
+                weeks[week_of].push(task);
+            } else {
+                weeks[week_of] = [task]
             }
-        });
-    } catch (error) {
-        console.error('Error loading weekly completed tasks:', error);
+        }
+    });
+
+    const canModify = currentUser.profile.admin === true;
+
+    for (const [week, tasksPerWeek] of Object.entries(weeks)) {
+        const weekSummary = document.createElement('div');
+        weekSummary.classList.add('week-summary');
+        weekSummary.dataset.week = week;
+
+        const title = document.createElement('h2');
+        title.textContent = week;
+        weekSummary.appendChild(title);
+
+        const ul = document.createElement('ul');
+        ul.classList.add('weekly-task-list');
+
+        console.log(tasksPerWeek)
+
+        for (const task of tasksPerWeek) { 
+            const li = document.createElement('li');
+
+            li.dataset.taskId = task.id;
+            li.classList.add('task-item');
+
+            li.innerHTML = `
+            ${canModify ? `<button class="done" onclick="markUndone(this.parentNode)">↑</button>` : ''}
+            ${canModify ? `<button class="remove" onclick="removeTask(this.parentNode)">✕</button>` : ''}
+            ${canModify ? createTagSelector(task.tag_id) : `<div class="tag-display" style="background-color: ${tagInfo.color}">${tagInfo.name}</div>`}
+            <span class="task-content">${task.task_text}</span>
+            `;
+
+            ul.appendChild(li);
+        }
+
+        weekSummary.appendChild(ul);
+        tasksList.appendChild(weekSummary);
     }
+    
 }   
 
 async function markUndone(taskElement) {
@@ -63,26 +85,35 @@ async function markUndone(taskElement) {
         const { error } = await supabase
             .from('tasks')
             .update([{ 
-                is_done: isDone,
+                is_done: false,
                 completed_at: null 
             }])
             .eq('id', taskId);
         if (error) throw error;
 
-        if (isDone) {
+        if (!isDone) {
             // Increment task completion count
             await supabase
                 .from('profiles')
                 .update({ 
-                    week_count_task: currentUser.profile.week_count_task + 1,
+                    week_count_task: currentUser.profile.week_count_task - 1,
                 })
                 .eq('id', currentUser.user.id);
             
             currentUser.profile.week_count_task++;
         }
 
-        loadTasks();
+        loadWeeks();
     } catch (error) {
         console.error('Error updating task:', error);
     }
+}
+
+function getMonday(date) {
+  const d = new Date(date);
+  const day = d.getDay(); // Sunday = 0, Monday = 1, ..., Saturday = 6
+  const diff = (day === 0 ? -6 : 1) - day; // Shift backwards to Monday
+  d.setDate(d.getDate() + diff);
+  d.setHours(0, 0, 0, 0); // normalize time
+  return d;
 }
