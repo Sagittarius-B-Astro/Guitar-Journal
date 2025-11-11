@@ -291,7 +291,7 @@ async function markDone(taskElement) {
         const { error } = await supabase
             .from('tasks')
             .update([{ 
-                is_done: isDone,
+                is_done: true,
                 completed_at: new Date() 
             }])
             .eq('id', taskId);
@@ -302,7 +302,7 @@ async function markDone(taskElement) {
             await supabase
                 .from('profiles')
                 .update({ 
-                    week_count_task: currentUser.profile.week_count_task + 1,
+                    week_count_task: currentUser.profile.week_count_task + 1
                 })
                 .eq('id', currentUser.user.id);
             
@@ -310,6 +310,7 @@ async function markDone(taskElement) {
         }
 
         loadTasks();
+        loadWeeks();
     } catch (error) {
         console.error('Error updating task:', error);
     }
