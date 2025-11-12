@@ -1,5 +1,3 @@
-const colors = ['#016B61', '#70B2B2', '#9ECFD4', '#E5E9C5'];
-
 async function loadTasks() {
     try {
         const { data: tasks, error } = await supabase
@@ -12,7 +10,8 @@ async function loadTasks() {
 
         if (error) throw error;
 
-        window.allTasks = tasks; // Store for filtering
+        const incomplete_tasks = tasks.filter(t => !t.is_done);
+        window.allTasks = incomplete_tasks; // Store for filtering
         filterTasks();
     } catch (error) {
         console.error('Error loading tasks:', error);
@@ -20,19 +19,10 @@ async function loadTasks() {
 }
 
 const taskTags = [
-    {name: 'Play', color: '#70B2B2'},
-    {name: 'Theory', color: '#9ECFD4'},
-    {name: 'Dev', color: '#E5E9C5'}
+    {name: 'Play', color: '#016B61'},
+    {name: 'Theory', color: '#70B2B2'},
+    {name: 'Dev', color: '#9ECFD4'},
 ]
-function getDefaultTagName(color) {
-    const defaultNames = {
-        '#016B61': 'All',
-        '#70B2B2': 'Play',
-        '#9ECFD4': 'Theory',
-        '#E5E9C5': 'Dev',
-    };
-    return defaultNames[color] || 'Unnamed';
-}
 
 function filterTasks() {
     if (!window.allTasks) return;
