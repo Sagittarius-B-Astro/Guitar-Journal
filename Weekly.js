@@ -110,10 +110,10 @@ async function markUndone(taskElement) {
 }
 
 function getMonday(date) {
-  const d = new Date(date);
-  const day = d.getDay(); // Sunday = 0, Monday = 1, ..., Saturday = 6
-  const diff = (day === 0 ? -6 : 1) - day; // Shift backwards to Monday
-  d.setDate(d.getDate() + diff);
-  d.setHours(0, 0, 0, 0); // normalize time
-  return d;
+    const d = new Date(date);
+    const day = d.getDay(); 
+    const diff = (day === 0 ? -6 : 1) - day; 
+    d.setDate(d.getDate() + diff);
+    d.setHours(0, 0, 0, 0); 
+    return d;
 }
