@@ -172,7 +172,7 @@ h1, h2, h3 {
     margin: 20px 0;
 }
 
-#task-text {
+#task-text, #video-link {
     flex-grow: 1;
     padding: 10px;
     font-size: 1em;
@@ -194,12 +194,6 @@ li {
     align-items: center;
     gap: 10px;
     width: 1200px;
-}
-
-li.finished {
-    text-decoration: line-through;
-    opacity: 0.6;
-    transition: 0.3s ease-in-out;
 }
 
 button {
@@ -298,9 +292,10 @@ button:hover {
 
 .week-summary {
   margin: 15px 0;
-  padding: 10px;
+  padding: 30px;
   border-radius: 12px;
-  background-color: #f8f8f8;
+  backdrop-filter: blur(10px);
+  background: rgba(255, 255, 255, 0.1);
   box-shadow: 0 1px 4px rgba(0,0,0,0.1);
 }
 
