@@ -10,8 +10,8 @@ async function loadVideos() {
 
         if (error) throw error;
 
-        // Only completed tasks
-        window.videos = videos; // Store for filtering
+        const viewable_vids = videos.filter(vid => !vid.hide);
+        window.videos = viewable_vids``;
 
         displayVideos();
     } catch (error) {
@@ -31,17 +31,14 @@ async function displayVideos() {
         videoContainer.classList.add('video')
         videoContainer.dataset.vidId = video.id;
 
-        const title = document.createElement('h3');
+        const title = document.createElement('href');
         title.textContent = video.title;
+        title.link = video.link;
         videoContainer.appendChild(title);
 
         const description = document.createElement('span');
         description.textContent = video.description;
         videoContainer.appendChild(description);
-
-        const link = document.createElement('href');
-        link.textContent = video.link;
-        videoContainer.appendChild(link);
 
         const hideOption = document.createElement('div')
         hideOption.innerHTML = `${canModify ? `<button class="hide" onclick="hideVideo(this.parentNode)">✕</button>` : ''}`
@@ -52,22 +49,23 @@ async function displayVideos() {
 }   
 
 async function addVideo() {
-    const taskInput = document.getElementById('task-text');
-    const vidText = taskInput.value.trim();
+    const videolink = document.getElementById('video-link');
+    const vidLink = videolink.value.trim();
 
-    if (!taskText) {
-        alert('Please enter a task!');
+    if (!vidLink) {
+        alert('Please enter a link!');
         return;
     }
 
     try {
         const { data, error } = await supabase
-            .from('tasks')
+            .from('videos')
             .insert([{
                 user_id: currentUser.user.id,
-                task_text: taskText,
-                is_done: false,
-                tag_id: null
+                title: '',
+                description: '',
+                link: vidLink,
+                hide: false
             }])
             .select();
         if (error) throw error;
@@ -75,8 +73,8 @@ async function addVideo() {
         taskInput.value = '';
         loadTasks();
     } catch (error) {
-        console.error('Error adding task:', error);
-        alert('Failed to add task. Please try again.');
+        console.error('Error adding video:', error);
+        alert('Failed to add video. Please try again.');
     }
 }
 
