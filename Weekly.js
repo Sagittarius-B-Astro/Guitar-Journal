@@ -31,7 +31,7 @@ async function displayByWeek() {
             const monday = getMonday(task.completed_at);
             const week_of = `Week of ${monday.toLocaleDateString()}`;
 
-            if (weeks.week_of) {
+            if (weeks[week_of]) {
                 weeks[week_of].push(task);
             } else {
                 weeks[week_of] = [task]
@@ -50,16 +50,13 @@ async function displayByWeek() {
         title.textContent = week;
         weekSummary.appendChild(title);
 
-        const ul = document.createElement('ul');
-        ul.classList.add('weekly-task-list');
-
-        console.log(tasksPerWeek)
+        const list = document.createElement("ul");
+        list.classList.add("weekly-task-list");
 
         for (const task of tasksPerWeek) { 
             const li = document.createElement('li');
 
             li.dataset.taskId = task.id;
-            li.classList.add('task-item');
 
             li.innerHTML = `
             ${canModify ? `<button class="done" onclick="markUndone(this.parentNode)">↑</button>` : ''}
@@ -68,18 +65,20 @@ async function displayByWeek() {
             <span class="task-content">${task.task_text}</span>
             `;
 
-            ul.appendChild(li);
+            list.appendChild(li);
         }
 
-        weekSummary.appendChild(ul);
-        tasksList.appendChild(weekSummary);
+        weekSummary.appendChild(list);
+        tasksList.appendChild(weekSummary)
     }
     
 }   
 
 async function markUndone(taskElement) {
     const taskId = taskElement.dataset.taskId;
-    const isDone = !taskElement.classList.contains('finished');
+    const isDone = !taskElement.dataset.is_done;
+
+    console.log(taskElement)
 
     try {
         const { error } = await supabase
@@ -103,6 +102,7 @@ async function markUndone(taskElement) {
             currentUser.profile.week_count_task++;
         }
 
+        loadTasks();
         loadWeeks();
     } catch (error) {
         console.error('Error updating task:', error);
