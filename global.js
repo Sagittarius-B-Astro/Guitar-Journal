@@ -153,6 +153,7 @@ function showMainApp() {
   // Initialize app
     loadTasks();
     loadWeeks();
+    loadVideos();
 }
 
 function logout() {
