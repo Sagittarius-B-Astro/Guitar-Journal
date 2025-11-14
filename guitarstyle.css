@@ -1,3 +1,5 @@
+/* GENERAL */
+
 html {
     width: 100%;
     height: 100%;
@@ -20,6 +22,8 @@ body {
     background: linear-gradient(180deg, #1e2a78 0%, #0e1a35 40%, #150a1f 100%);
     background-attachment: fixed;
 }
+
+/* LOGIN */
 
 .auth-modal {
     position: fixed;
@@ -112,13 +116,31 @@ body {
     object-fit: cover;
 }
 
+/* MAIN PAGE*/
+
 h1, h2, h3 {
   margin: 0;
   padding: 0;
   color:#FAF8FF;
   font-family: 'Space Grotesk', sans-serif;
   letter-spacing: -0.03em;
+  padding: 30px;
 }
+
+.title, .Goals, .Weekly, .Videos {
+    opacity: 0.5;
+    width: 100%;
+    color: #fce7c8;
+    background: transparent;
+    display: flex;
+    padding: 60px;
+    justify-content: center;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 30px;
+}
+
+/* TOP LINKS */
 
 .top-container {
     display: flex;
@@ -151,17 +173,7 @@ h1, h2, h3 {
     transform: scale(1.1);
 }
 
-.title, .Goals, .Weekly, .Videos {
-    opacity: 0.5;
-    width: 100%;
-    color: #fce7c8;
-    background: transparent;
-    display: flex;
-    padding: 60px;
-    justify-content: center;
-    flex-direction: column;
-    align-items: center;
-}
+/* TASKLIST */
 
 .enter-task {
     display: flex;
@@ -186,14 +198,15 @@ h1, h2, h3 {
 li {
     list-style-type: none;
     background: rgba(255, 255, 255, 0.1);
-    margin: 10px 0;
+    margin: 10px auto;
     padding: 15px;
     border-radius: 8px;
     backdrop-filter: blur(10px);
     display: flex;
     align-items: center;
     gap: 10px;
-    width: 1200px;
+    width: 100%;
+    max-width: 1800px;
 }
 
 button {
@@ -234,27 +247,6 @@ button:hover {
     border-color: white;
 }
 
-.enter-video {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    flex-wrap: wrap;
-    justify-content: center;
-    margin: 20px 0;
-}
-
-.video-catalogue {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: 40px
-}
-
-.video {
-    display: flex;
-
-}
-
 .tag-selector {
   position: relative;
   display: inline-block;
@@ -290,13 +282,38 @@ button:hover {
   cursor: pointer;
 }
 
+/* WEEKLY */
+
+#weekly-posts {
+  width: 100%;
+  max-width: 1800px;
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+  align-items: center; /* or stretch if you prefer full width */
+  margin: 0 auto;
+}
+
 .week-summary {
-  margin: 15px 0;
-  padding: 30px;
-  border-radius: 12px;
-  backdrop-filter: blur(10px);
-  background: rgba(255, 255, 255, 0.1);
-  box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+    max-width: 1800px;
+    width: 100%;
+    padding: 40px 50px; /* more breathing room inside */
+    display: flex;
+    flex-direction: column;
+    gap: 20px; /* spacing BETWEEN li items */
+    backdrop-filter: blur(10px);
+    background: rgba(255, 255, 255, 0.1);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+}
+
+.week-summary li {
+    width: 100%;
+    max-width: 1800px;
+    padding: 15px 25px;
+    margin: 10px auto;
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 8px;
+    backdrop-filter: blur(8px);
 }
 
 .week-summary h3 {
@@ -311,10 +328,87 @@ button:hover {
   padding-left: 0;
 }
 
-.weekly-task-list .task-item {
+.weekly-task-list {
   margin: 4px 0;
   padding: 6px 10px;
   border-radius: 8px;
   background: transparent;
   box-shadow: 0 0 2px rgba(0,0,0,0.1);
 }
+
+/* VIDEOS */
+
+.enter-video {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin: 20px 0;
+    padding-bottom: 80px;
+}
+
+#video-catalogue {
+  padding-top: 50px;
+  width: 70%;
+  gap: 40px;
+  display: flex;
+  justify-content: center;
+  flex-direction: row;
+  padding: 20px 60px;
+}
+
+.video-container {
+  width: 350px; /* Keeps boxes uniform */
+  background: rgba(255, 255, 255, 0.2); /* More translucent like li */
+  border-radius: 12px;
+  padding: 20px;
+  position: relative;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.7);
+}
+
+.video-container:hover {
+  cursor: pointer;
+  transform: scale(1.02);
+  background-color: rgba(255, 255, 255, 0.1);
+  transition: transform 0.2s ease-in-out;
+}
+
+.video-frame {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border-radius: 8px;
+  margin: 10px 0;
+}
+
+.video-frame {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border: none;
+  border-radius: 8px;
+  margin: 10px 0 15px 0;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+}
+
+.video-container p {
+  color: #e0e0e0;
+  font-size: 14px;
+  line-height: 1.4em;
+  margin-bottom: 10px;
+}
+
+/* FIXES */
+
+#tasks li,
+.week-summary,
+.week-summary li {
+    margin-left: auto;
+    margin-right: auto;
+}
+
+#tasks li,
+.week-summary li {
+    padding: 20px 30px; /* horizontal padding prevents touching the walls */
+}
+
