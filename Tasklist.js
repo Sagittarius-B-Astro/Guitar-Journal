@@ -50,12 +50,12 @@ function filterTasks() {
 function displayTasks(tasks) {
     const tasksList = document.getElementById('tasks');
     tasksList.innerHTML = '';
+    const canModify = currentUser.profile.admin === true;
 
     tasks.forEach(task => {
         const li = document.createElement('li');
         li.dataset.taskId = task.id;
 
-        const canModify = currentUser.profile.admin === true;
         const tagInfo = taskTags.find(t => t.name === task.tag_id) || { color: '#CCC', name: 'No Tag' };
 
         li.innerHTML = `
@@ -64,8 +64,6 @@ function displayTasks(tasks) {
         ${canModify ? createTagSelector(task.tag_id) : `<div class="tag-display" style="background-color: ${tagInfo.color}">${tagInfo.name}</div>`}
         <span class="task-content">${task.task_text}</span>
         `;
-
-        if (task.is_done) li.classList.add('finished');
 
         if (canModify) {
         setupTagSelector(li, task.id);
@@ -111,7 +109,6 @@ function setupTagSelector(taskElement, taskId) {
         }
     });
 }
-
 
 function createTagSelector(currentTagName) {
   const currentTag = taskTags.find(t => t.name === currentTagName) || taskTags[0];
@@ -275,7 +272,9 @@ async function addTask() {
 
 async function markDone(taskElement) {
     const taskId = taskElement.dataset.taskId;
-    const isDone = !taskElement.classList.contains('finished');
+    const isDone = !taskElement.dataset.is_done;
+
+    console.log(taskElement);
 
     try {
         const { error } = await supabase
@@ -295,7 +294,6 @@ async function markDone(taskElement) {
                     week_count_task: currentUser.profile.week_count_task + 1
                 })
                 .eq('id', currentUser.user.id);
-            
             currentUser.profile.week_count_task++;
         }
 
